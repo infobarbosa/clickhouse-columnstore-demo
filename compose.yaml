@@ -1,0 +1,6 @@
+services:
+  clickhouse-lab:
+    container_name: clickhouse-lab
+    image: ghcr.io/infobarbosa/clickhouse-lab-docker-image:latest
+    ports:
+      - "8080:8080"
