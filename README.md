@@ -111,7 +111,7 @@ SETTINGS min_bytes_for_wide_part = 0;"
 > **Entendendo a criação da tabela:**
 > - `ENGINE = MergeTree`: é o mecanismo de armazenamento colunar padrão do ClickHouse.
 > - `CODEC(NONE)`: por padrão o ClickHouse **comprime** cada coluna (LZ4), o que deixaria os arquivos ilegíveis. Desligamos a compressão nesta tabela para enxergar os dados brutos. Mais adiante veremos a compressão em ação.
-> - `min_bytes_for_wide_part = 0`: por padrão, lotes pequenos de dados são gravados em formato *compacto* (um único arquivo). Este ajuste força o formato *wide*, em que **cada coluna tem o seu próprio arquivo**.
+> - `min_bytes_for_wide_part = 0`: por padrão, parts com menos de 10 MB são gravadas em formato *compact*: um único arquivo `data.bin`, em que os dados são divididos em blocos de 8.192 linhas e, **dentro de cada bloco, as colunas ficam separadas** (organização semelhante à do formato Parquet). Parts maiores usam o formato *wide*, com **um arquivo por coluna**. Como nossa tabela terá poucas linhas, forçamos o formato *wide* para visualizar a separação com mais clareza. Na Parte 7 você verá a tabela `invoices` ser gravada em formato *wide* sem nenhum ajuste.
 > - `Date32`: tipo de data que aceita valores a partir de 1900 (o tipo `Date` começa em 1970).
 
 Verificando se deu certo:
@@ -576,7 +576,7 @@ Output:
 ```
 
 ### Tabela `invoices`
-Desta vez **sem** `CODEC(NONE)`, ou seja, com a compressão padrão:
+Desta vez **sem** `CODEC(NONE)` (ou seja, com a compressão padrão) e **sem** `min_bytes_for_wide_part`:
 ```
 clickhouse-client -q "
 CREATE TABLE ecommerce.invoices (
@@ -710,6 +710,8 @@ Output:
 -rw-r----- 1 clickhouse clickhouse  264497 Oct  8 17:40 StockCode.size.bin
 -rw-r----- 1 clickhouse clickhouse 1479802 Oct  8 17:40 UnitPrice.bin
 ```
+
+> Mesmo sem nenhum ajuste na criação da tabela, o ClickHouse gravou **um arquivo por coluna**: com cerca de 57 MB de dados, a part ultrapassou o limite de 10 MB e foi gravada em formato *wide*.
 
 ```
 hexdump -C $PART/Description.bin | head -5
