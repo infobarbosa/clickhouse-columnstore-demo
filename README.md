@@ -60,6 +60,21 @@ Output esperado (a versão pode variar):
 26.8.21.10
 ```
 
+Os arquivos de dados usados no laboratório já vêm na imagem, na pasta `/data`. Não é preciso clonar nem baixar nada:
+```
+ls -la /data
+
+```
+
+Output esperado:
+```
+total 7944
+drwxr-xr-x 2 barbosa barbosa    4096 Oct 16 02:01 .
+drwxr-xr-x 1 root    root       4096 Oct 16 02:06 ..
+-rw-r--r-- 1 barbosa barbosa  395636 Oct 16 02:01 clientes.csv.gz
+-rw-r--r-- 1 barbosa barbosa 7726488 Oct 16 02:01 invoices.tar.gz
+```
+
 ### Retomando o laboratório
 Se a sessão do AWS Academy expirar, a instância será parada. **Não execute o `launch-lab.sh` novamente.**
 1. No Console AWS (`us-east-1`), acesse **EC2** > **Instances**.
@@ -67,31 +82,25 @@ Se a sessão do AWS Academy expirar, a instância será parada. **Não execute o
 3. Aguarde o status **Running** e copie o novo **Public IPv4 address** (ele muda a cada reinício).
 4. Acesse `http://<NOVO_IP_PUBLICO>:8080`. O container reinicia automaticamente e os dados do ClickHouse são preservados.
 
-## Setup
-No terminal do code-server, faça o clone deste repositório:
-```
-git clone https://github.com/infobarbosa/clickhouse-columnstore-demo.git
+### Convenções
+Cada bloco de comando tem na primeira linha um rótulo, como `# 3.b.1` (subseção 3.b, primeiro bloco). Os blocos sem rótulo, logo depois, mostram a saída esperada.
 
-```
+Alguns valores **mudam a cada execução**: os caminhos das parts, os *checksums* no início dos arquivos e as datas. Os seus não vão bater com os do texto, e isso é esperado. Contagens de linhas e tamanhos de dados, essas sim, devem bater.
 
->### Atenção!
-> Os comandos desse tutorial presumem que você está no diretório raiz do projeto.
+Os comandos funcionam a partir de qualquer pasta. Algumas seções guardam um caminho em uma variável (`$PART`, `$TABELA`); se você abrir um novo terminal no meio de uma seção, rode de novo o bloco que define a variável.
 
-```
-cd clickhouse-columnstore-demo
+## 1. A tabela `cliente`
 
-```
-
-## Parte 1 - A tabela `cliente`
-
-### Database `ecommerce`
-```
+### 1.a. Database `ecommerce`
+```sh
+# 1.a.1
 clickhouse-client -q "CREATE DATABASE IF NOT EXISTS ecommerce;"
 
 ```
 
-### Tabela `cliente`
-```
+### 1.b. Tabela `cliente`
+```sh
+# 1.b.1
 clickhouse-client -q "
 CREATE TABLE ecommerce.cliente (
     id        UInt64  CODEC(NONE),
@@ -111,11 +120,12 @@ SETTINGS min_bytes_for_wide_part = 0;"
 > **Entendendo a criação da tabela:**
 > - `ENGINE = MergeTree`: é o mecanismo de armazenamento colunar padrão do ClickHouse.
 > - `CODEC(NONE)`: por padrão o ClickHouse **comprime** cada coluna (LZ4), o que deixaria os arquivos ilegíveis. Desligamos a compressão nesta tabela para enxergar os dados brutos. Mais adiante veremos a compressão em ação.
-> - `min_bytes_for_wide_part = 0`: por padrão, parts com menos de 10 MB são gravadas em formato *compact*: um único arquivo `data.bin`, em que os dados são divididos em blocos de 8.192 linhas e, **dentro de cada bloco, as colunas ficam separadas** (organização semelhante à do formato Parquet). Parts maiores usam o formato *wide*, com **um arquivo por coluna**. Como nossa tabela terá poucas linhas, forçamos o formato *wide* para visualizar a separação com mais clareza. Na Parte 7 você verá a tabela `invoices` ser gravada em formato *wide* sem nenhum ajuste.
+> - `min_bytes_for_wide_part = 0`: por padrão, parts com menos de 10 MB são gravadas em formato *compact*: um único arquivo `data.bin`, em que os dados são divididos em blocos de 8.192 linhas e, **dentro de cada bloco, as colunas ficam separadas** (organização semelhante à do formato Parquet). Parts maiores usam o formato *wide*, com **um arquivo por coluna**. Como nossa tabela terá poucas linhas, forçamos o formato *wide* para visualizar a separação com mais clareza. Na seção 7 você verá a tabela `invoices` ser gravada em formato *wide* sem nenhum ajuste.
 > - `Date32`: tipo de data que aceita valores a partir de 1900 (o tipo `Date` começa em 1970).
 
 Verificando se deu certo:
-```
+```sh
+# 1.b.2
 clickhouse-client -q "DESCRIBE ecommerce.cliente;" --format PrettyCompactMonoBlock
 
 ```
@@ -133,8 +143,11 @@ Output esperado:
    └───────────┴────────┴──────────────┴────────────────────┴─────────┴──────────────────┴────────────────┘
 ```
 
-## Parte 2 - Inserindo registros
-```
+## 2. Inserindo registros
+
+### 2.a. Três clientes
+```sh
+# 2.a.1
 clickhouse-client -q "
 INSERT INTO ecommerce.cliente VALUES
 (1, 'Marcelo Barbosa',      '1980-01-15', '111.111.111-11', 'marcelo.barbosa@example.com', 'São Paulo',  'SP'),
@@ -144,7 +157,8 @@ INSERT INTO ecommerce.cliente VALUES
 ```
 
 Verificando:
-```
+```sh
+# 2.a.2
 clickhouse-client -q "SELECT * FROM ecommerce.cliente;" --format PrettyCompactMonoBlock
 
 ```
@@ -158,9 +172,12 @@ Output:
    └────┴──────────────────────┴────────────┴────────────────┴─────────────────────────────┴────────────┴────┘
 ```
 
-## Parte 3 - Onde estão os dados?
+## 3. Onde estão os dados?
+
+### 3.a. O diretório da part
 O ClickHouse grava cada lote de dados inserido em um diretório chamado **part**. O dicionário de dados informa onde ele está:
-```
+```sh
+# 3.a.1
 clickhouse-client -q "
 SELECT name, path
 FROM system.parts
@@ -177,14 +194,17 @@ path: /var/lib/clickhouse/store/cdc/cdc10e9d-1e85-464e-a793-39c69a9e0ec4/all_1_1
 ```
 
 Para facilitar, vamos guardar esse caminho em uma variável de ambiente:
-```
+```sh
+# 3.a.2
 PART=$(clickhouse-client -q "SELECT path FROM system.parts WHERE database = 'ecommerce' AND table = 'cliente' AND active LIMIT 1")
 echo $PART
 
 ```
 
+### 3.b. Os arquivos da part
 Agora liste os arquivos de dados (`.bin`) da part:
-```
+```sh
+# 3.b.1
 ls -la $PART | grep '\.bin$'
 
 ```
@@ -209,17 +229,19 @@ Output:
 > As colunas de texto (`String`) têm ainda um arquivo auxiliar `.size.bin`, que guarda o tamanho de cada valor.
 
 Caso tenha curiosidade, liste **todos** os arquivos da part:
-```
+```sh
+# 3.b.2
 ls -la $PART
 
 ```
 
 > Além dos `.bin`, há arquivos de *marcas* (`.cmrk2`, que apontam posições dentro dos `.bin`), o índice primário (`primary.cidx`), a contagem de linhas (`count.txt`) e a lista de colunas (`columns.txt`), entre outros.
 
-## Parte 4 - Inspecionando os arquivos de dados
+## 4. Inspecionando os arquivos de dados
 
-### A coluna `nome`
-```
+### 4.a. A coluna `nome`
+```sh
+# 4.a.1
 hexdump -C $PART/nome.bin
 
 ```
@@ -238,8 +260,9 @@ Output:
 >
 > Os primeiros 25 bytes são um cabeçalho do bloco: 16 bytes de *checksum*, 1 byte com o método de compressão (`02` = nenhum) e dois inteiros de 4 bytes com os tamanhos do bloco (`3e` = 62 bytes com cabeçalho, `35` = 53 bytes de dados).
 
-### A coluna `cpf`
-```
+### 4.b. A coluna `cpf`
+```sh
+# 4.b.1
 hexdump -C $PART/cpf.bin
 
 ```
@@ -254,8 +277,9 @@ Output:
 00000043
 ```
 
-### A coluna `uf`
-```
+### 4.c. A coluna `uf`
+```sh
+# 4.c.1
 hexdump -C $PART/uf.bin
 
 ```
@@ -267,8 +291,9 @@ Output:
 0000001f
 ```
 
-### Em qual arquivo está o "Juscelino"?
-```
+### 4.d. Em qual arquivo está o "Juscelino"?
+```sh
+# 4.d.1
 grep --text -l Juscelino $PART/*.bin
 
 ```
@@ -280,9 +305,10 @@ Output:
 
 > Apenas o arquivo da coluna `nome` contém o valor. Compare com o laboratório de *rowstore*: lá, o `grep` encontrava o registro inteiro (cpf + nome) no mesmo trecho do arquivo `.ibd`.
 
-### Colunas numéricas e de data
+### 4.e. Colunas numéricas e de data
 Colunas numéricas não são gravadas como texto, mas no seu formato binário. A coluna `id` (`UInt64`) ocupa 8 bytes por valor:
-```
+```sh
+# 4.e.1
 hexdump -C $PART/id.bin
 
 ```
@@ -298,16 +324,20 @@ Output:
 
 > Após o cabeçalho, estão os valores `1`, `2` e `3`, cada um com 8 bytes (*little-endian*): `01 00 00 00 00 00 00 00`, `02 00 ...`, `03 00 ...`.<br>
 > Da mesma forma, `data_nasc.bin` guarda cada data como um inteiro de 4 bytes (número de dias desde 01/01/1970) e `nome.size.bin` guarda o tamanho de cada nome (`0f` = 15 bytes de "Marcelo Barbosa", `14` = 20 bytes de "Juscelino Kubitschek"...). Experimente:
-```
+```sh
+# 4.e.2
 hexdump -C $PART/nome.size.bin
 
 ```
 
-## Parte 5 - Parts são imutáveis
+## 5. Parts são imutáveis
+
+### 5.a. Uma part por `INSERT`
 O ClickHouse **nunca altera** um arquivo de dados já gravado. Cada `INSERT` gera uma **nova part** (um novo diretório).
 
 Guarde o diretório da tabela em uma variável:
-```
+```sh
+# 5.a.1
 TABELA=$(clickhouse-client -q "SELECT data_paths[1] FROM system.tables WHERE database = 'ecommerce' AND name = 'cliente'")
 ls -1 $TABELA
 
@@ -321,7 +351,8 @@ format_version.txt
 ```
 
 Insira mais um registro:
-```
+```sh
+# 5.a.2
 clickhouse-client -q "
 INSERT INTO ecommerce.cliente VALUES
 (4, 'Carmen Miranda', '1909-02-09', '444.444.444-44', 'carmen.m@example.com', 'Rio de Janeiro', 'RJ');"
@@ -329,7 +360,8 @@ INSERT INTO ecommerce.cliente VALUES
 ```
 
 Verificando as parts:
-```
+```sh
+# 5.a.3
 clickhouse-client -q "
 SELECT name, rows, active
 FROM system.parts
@@ -345,7 +377,8 @@ Output:
    └───────────┴──────┴────────┘
 ```
 
-```
+```sh
+# 5.a.4
 ls -1 $TABELA
 
 ```
@@ -360,14 +393,16 @@ format_version.txt
 
 > O novo registro foi gravado em uma nova part, `all_2_2_0`, com seus próprios arquivos `nome.bin`, `cpf.bin`... A part anterior não foi tocada.
 
-### Merge
+### 5.b. Merge
 Periodicamente o ClickHouse **funde** (*merge*) parts pequenas em uma part maior, em segundo plano. Podemos forçar esse processo:
-```
+```sh
+# 5.b.1
 clickhouse-client -q "OPTIMIZE TABLE ecommerce.cliente FINAL;"
 
 ```
 
-```
+```sh
+# 5.b.2
 clickhouse-client -q "
 SELECT name, rows, active
 FROM system.parts
@@ -387,7 +422,8 @@ Output:
 > Uma nova part `all_1_2_1` foi criada com as 4 linhas. As parts antigas ficaram inativas (`active = 0`) e serão apagadas do disco automaticamente após alguns minutos.
 
 Inspecione a coluna `nome` da nova part:
-```
+```sh
+# 5.b.3
 PART=$(clickhouse-client -q "SELECT path FROM system.parts WHERE database = 'ecommerce' AND table = 'cliente' AND active LIMIT 1")
 hexdump -C $PART/nome.bin
 
@@ -404,22 +440,14 @@ Output:
 0000005c
 ```
 
-## Parte 6 - Carga do dataset de clientes
+## 6. Carga do dataset de clientes
 Vamos limpar a tabela e carregá-la com um dataset de clientes fictícios.
-```
-clickhouse-client -q "TRUNCATE TABLE ecommerce.cliente;"
 
-```
-
-Faça o clone do dataset:
-```
-git clone https://github.com/infobarbosa/datasets-csv-clientes
-
-```
-
-Checando o arquivo:
-```
-gunzip -c datasets-csv-clientes/clientes.csv.gz | head
+### 6.a. O arquivo `clientes.csv.gz`
+O dataset já está na imagem, na pasta `/data`. Checando o arquivo:
+```sh
+# 6.a.1
+gunzip -c /data/clientes.csv.gz | head
 
 ```
 
@@ -437,18 +465,27 @@ id;nome;data_nasc;cpf;email;cidade;uf
 9;Isabel Ferreira;1967-03-11;802.537.694-00;isabel.ferreira@outlook.com;Guarulhos;SP
 ```
 
-### Carga de dados
-O `clickhouse-client` lê o arquivo compactado diretamente (o `;` é o separador de campos):
+### 6.b. Carga de dados
+Limpe a tabela:
+```sh
+# 6.b.1
+clickhouse-client -q "TRUNCATE TABLE ecommerce.cliente;"
+
 ```
+
+O `clickhouse-client` lê o arquivo compactado diretamente (o `;` é o separador de campos):
+```sh
+# 6.b.2
 clickhouse-client --format_csv_delimiter=';' -q "
 INSERT INTO ecommerce.cliente
-FROM INFILE 'datasets-csv-clientes/clientes.csv.gz'
+FROM INFILE '/data/clientes.csv.gz'
 FORMAT CSVWithNames;"
 
 ```
 
 Checando:
-```
+```sh
+# 6.b.3
 clickhouse-client -q "SELECT count() FROM ecommerce.cliente;"
 
 ```
@@ -458,7 +495,8 @@ Output:
 14038
 ```
 
-```
+```sh
+# 6.b.4
 clickhouse-client -q "SELECT * FROM ecommerce.cliente ORDER BY id LIMIT 5;" --format PrettyCompactMonoBlock
 
 ```
@@ -474,8 +512,9 @@ Output:
    └────┴────────────────────┴────────────┴────────────────┴───────────────────────────────┴────────────┴────┘
 ```
 
-### Inspecionando os arquivos
-```
+### 6.c. Inspecionando os arquivos
+```sh
+# 6.c.1
 PART=$(clickhouse-client -q "SELECT path FROM system.parts WHERE database = 'ecommerce' AND table = 'cliente' AND active LIMIT 1")
 ls -la $PART | grep '\.bin$'
 
@@ -500,7 +539,8 @@ Output:
 > Cada arquivo tem um tamanho proporcional ao conteúdo da sua coluna: `email.bin` é o maior; `uf.bin` (2 caracteres por linha) é o menor.
 
 A coluna `nome`:
-```
+```sh
+# 6.c.2
 hexdump -C $PART/nome.bin | head
 
 ```
@@ -517,7 +557,8 @@ Output:
 ```
 
 A coluna `uf`:
-```
+```sh
+# 6.c.3
 hexdump -C $PART/uf.bin | head
 
 ```
@@ -535,25 +576,33 @@ Output:
 
 > `ES`, `PI`, `RN`, `CE`, `ES`, `PE`, `AC`, `AC`, `SP`... são as UFs dos clientes 1, 2, 3, 4... gravadas em sequência. Repare quantos valores se repetem: é exatamente esse tipo de repetição que a compressão colunar aproveita.
 
-## Parte 7 - Compressão
+## 7. Compressão
 Agora vamos trabalhar com um volume maior de dados e com a **compressão padrão** do ClickHouse ligada.
 
-### O arquivo `invoices.csv`
-O arquivo de vendas está disponível na pasta `assets/data` deste repositório:
-```
-ls -la assets/data/invoices.tar.gz
+### 7.a. O arquivo `invoices.csv`
+O arquivo de vendas já está na imagem, na pasta `/data`:
+```sh
+# 7.a.1
+ls -la /data/invoices.tar.gz
 
 ```
 
-Descompacte o arquivo:
+Output:
 ```
-tar -xzf assets/data/invoices.tar.gz -C /tmp/
+-rw-r--r-- 1 barbosa barbosa 7726488 Oct 16 02:01 /data/invoices.tar.gz
+```
+
+Descompacte o arquivo na própria pasta `/data`:
+```sh
+# 7.a.2
+tar -xzf /data/invoices.tar.gz -C /data/
 
 ```
 
 Examinando a estrutura do arquivo:
-```
-head -3 /tmp/invoices.csv
+```sh
+# 7.a.3
+head -3 /data/invoices.csv
 
 ```
 
@@ -565,19 +614,21 @@ InvoiceDate,Country,InvoiceNo,StockCode,Description,CustomerID,Quantity,UnitPric
 ```
 
 Número de linhas:
-```
-wc -l /tmp/invoices.csv
+```sh
+# 7.a.4
+wc -l /data/invoices.csv
 
 ```
 
 Output:
 ```
-541910 /tmp/invoices.csv
+541910 /data/invoices.csv
 ```
 
-### Tabela `invoices`
+### 7.b. Tabela `invoices`
 Desta vez **sem** `CODEC(NONE)` (ou seja, com a compressão padrão) e **sem** `min_bytes_for_wide_part`:
-```
+```sh
+# 7.b.1
 clickhouse-client -q "
 CREATE TABLE ecommerce.invoices (
     InvoiceDate DateTime,
@@ -594,19 +645,21 @@ ORDER BY InvoiceDate;"
 
 ```
 
-### Carga de dados
+### 7.c. Carga de dados
 > O parâmetro `--date_time_input_format=best_effort` permite ler datas no formato `2010-12-01T08:26:00Z`.
 
-```
+```sh
+# 7.c.1
 clickhouse-client --date_time_input_format=best_effort -q "
 INSERT INTO ecommerce.invoices
-FROM INFILE '/tmp/invoices.csv'
+FROM INFILE '/data/invoices.csv'
 FORMAT CSVWithNames;"
 
 ```
 
 Checando:
-```
+```sh
+# 7.c.2
 clickhouse-client -q "SELECT count() FROM ecommerce.invoices;"
 
 ```
@@ -616,7 +669,8 @@ Output:
 541909
 ```
 
-```
+```sh
+# 7.c.3
 clickhouse-client -q "SELECT * FROM ecommerce.invoices LIMIT 5;" --format PrettyCompactMonoBlock
 
 ```
@@ -632,9 +686,10 @@ Output:
    └─────────────────────┴────────────────┴───────────┴───────────┴─────────────────────────────────────┴────────────┴──────────┴───────────┘
 ```
 
-### Compressão por coluna
+### 7.d. Compressão por coluna
 O dicionário de dados informa, para cada coluna, o tamanho bruto (descomprimido) e o tamanho efetivamente gravado em disco:
-```
+```sh
+# 7.d.1
 clickhouse-client -q "
 SELECT
     column AS coluna,
@@ -670,7 +725,8 @@ Output:
 > Em um armazenamento por linha, valores de colunas diferentes ficam misturados no mesmo bloco, o que dificulta esse ganho.
 
 Tamanho total da tabela:
-```
+```sh
+# 7.d.2
 clickhouse-client -q "
 SELECT
     formatReadableSize(sum(data_uncompressed_bytes)) AS tamanho_bruto,
@@ -687,8 +743,9 @@ Output:
    └───────────────┴──────────────────┘
 ```
 
-### Os arquivos comprimidos
-```
+### 7.e. Os arquivos comprimidos
+```sh
+# 7.e.1
 PART=$(clickhouse-client -q "SELECT path FROM system.parts WHERE database = 'ecommerce' AND table = 'invoices' AND active LIMIT 1")
 ls -la $PART | grep '\.bin$'
 
@@ -713,7 +770,8 @@ Output:
 
 > Mesmo sem nenhum ajuste na criação da tabela, o ClickHouse gravou **um arquivo por coluna**: com cerca de 57 MB de dados, a part ultrapassou o limite de 10 MB e foi gravada em formato *wide*.
 
-```
+```sh
+# 7.e.2
 hexdump -C $PART/Description.bin | head -5
 
 ```
@@ -729,17 +787,22 @@ Output:
 
 > O método de compressão agora é `82` (LZ4). O LZ4 mantém trechos inéditos como texto literal e substitui as repetições por referências a trechos anteriores, por isso ainda é possível ler parte das descrições.
 
-## Parte 8 - Uma consulta lê apenas as colunas de que precisa
-Esta é a principal vantagem do armazenamento colunar para consultas analíticas. Execute as consultas abaixo:
+## 8. Uma consulta lê apenas as colunas de que precisa
+Esta é a principal vantagem do armazenamento colunar para consultas analíticas.
+
+### 8.a. Quatro consultas
+Execute as consultas abaixo:
 
 **1. Média de preço** (usa apenas a coluna `UnitPrice`):
-```
+```sh
+# 8.a.1
 clickhouse-client -q "SELECT avg(UnitPrice) FROM ecommerce.invoices;"
 
 ```
 
 **2. Consulta analítica** (usa as colunas `StockCode` e `UnitPrice`):
-```
+```sh
+# 8.a.2
 clickhouse-client -q "
 SELECT count(DISTINCT StockCode), max(UnitPrice), min(UnitPrice), avg(UnitPrice)
 FROM ecommerce.invoices;"
@@ -747,19 +810,23 @@ FROM ecommerce.invoices;"
 ```
 
 **3. Busca de uma nota fiscal** (todas as colunas, mas poucas linhas):
-```
+```sh
+# 8.a.3
 clickhouse-client -q "SELECT * FROM ecommerce.invoices WHERE InvoiceNo = '536365';" --format PrettyCompactMonoBlock
 
 ```
 
 **4. Leitura da tabela inteira** (todas as colunas, todas as linhas; o resultado é descartado com `FORMAT Null`):
-```
+```sh
+# 8.a.4
 clickhouse-client -q "SELECT * FROM ecommerce.invoices FORMAT Null;"
 
 ```
 
-Agora consulte o log de consultas do ClickHouse para ver quanto cada uma leu:
-```
+### 8.b. Quanto cada consulta leu
+Consulte o log de consultas do ClickHouse para ver quanto cada uma leu:
+```sh
+# 8.b.1
 clickhouse-client -q "SYSTEM FLUSH LOGS;"
 clickhouse-client -q "
 SELECT
@@ -808,7 +875,7 @@ lido_do_disco:     1.41 MiB
 dados_processados: 4.13 MiB
 ```
 
-> Compare `lido_do_disco` com a tabela de compressão da Parte 7:
+> Compare `lido_do_disco` com a tabela de compressão da seção 7:
 > - A média de preço leu **1.41 MiB**: exatamente o tamanho em disco da coluna `UnitPrice`. As outras 7 colunas **nem foram abertas**.
 > - A consulta analítica leu **3.30 MiB** ≈ `StockCode` (1.88 MiB) + `UnitPrice` (1.41 MiB).
 > - A leitura da tabela inteira leu **11.33 MiB**: o tamanho total da tabela em disco.
@@ -845,15 +912,15 @@ Neste laboratório nós:
 
 Fora do horário de aula, é possível executar o mesmo ambiente em qualquer máquina (ou provedor de nuvem) com Docker disponível. A imagem é publicada para `linux/amd64` e `linux/arm64` (inclusive Macs com Apple Silicon).
 
-Faça o clone deste repositório e inicialize o container com o `compose.yaml` disponível na raiz do projeto:
+Baixe o `compose.yaml` deste repositório e inicialize o container:
 ```
-git clone https://github.com/infobarbosa/clickhouse-columnstore-demo.git
-cd clickhouse-columnstore-demo
+mkdir -p clickhouse-lab && cd clickhouse-lab
+curl -sSLO https://raw.githubusercontent.com/infobarbosa/clickhouse-columnstore-demo/main/compose.yaml
 docker compose up -d
 
 ```
 
-Ou, sem clonar o repositório:
+Ou, sem o `compose.yaml`:
 ```
 docker run -d --name clickhouse-lab -p 8080:8080 ghcr.io/infobarbosa/clickhouse-lab-docker-image:latest
 
