@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 292" width="1100" height="292" role="img" aria-label="Analytics de produto e eventos">
+<title>Analytics de produto e eventos</title>
+<defs><marker id='a' viewBox='0 0 10 10' refX='9' refY='5' markerWidth='7' markerHeight='7' orient='auto-start-reverse'><path d='M0,0 L10,5 L0,10 z' fill='#4B5563'/></marker></defs>
+<rect x="1" y="1" width="1098" height="290" rx="14" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1.5"/>
+<text x="30" y="38" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#111827">Analytics de produto e eventos</text>
+<path d="M186,119 C216,119 216,157 247,157" fill="none" stroke="#4B5563" stroke-width="1.8" marker-end="url(#a)"/>
+<path d="M186,195 C216,195 216,157 247,157" fill="none" stroke="#4B5563" stroke-width="1.8" marker-end="url(#a)"/>
+<path d="M407,157 C438,157 438,157 468,157" fill="none" stroke="#4B5563" stroke-width="1.8" marker-end="url(#a)"/>
+<path d="M628,157 C658,157 658,157 689,157" fill="none" stroke="#4B5563" stroke-width="1.8" marker-end="url(#a)"/>
+<path d="M849,157 C880,157 880,111 910,111" fill="none" stroke="#4B5563" stroke-width="1.8" marker-end="url(#a)"/>
+<rect x="864" y="115" width="31" height="18" rx="4" fill="#FFFFFF"/>
+<text x="880" y="128" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-style="italic" fill="#374151">SQL</text>
+<path d="M849,157 C880,157 880,203 910,203" fill="none" stroke="#4B5563" stroke-width="1.8" marker-end="url(#a)"/>
+<rect x="30" y="92" width="156" height="54" rx="10" fill="#F3F4F6" stroke="#9CA3AF" stroke-width="1.5"/>
+<text x="108" y="114" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111827">Site / app web</text>
+<text x="108" y="134" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">SDK de eventos</text>
+<rect x="30" y="168" width="156" height="54" rx="10" fill="#F3F4F6" stroke="#9CA3AF" stroke-width="1.5"/>
+<text x="108" y="190" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111827">App mobile</text>
+<text x="108" y="210" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">SDK de eventos</text>
+<rect x="251" y="122" width="156" height="70" rx="10" fill="#E0ECFF" stroke="#5B8DEF" stroke-width="1.5"/>
+<text x="329" y="144" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0B2E6B">API de coleta</text>
+<text x="329" y="164" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">recebe e valida</text>
+<text x="329" y="180" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">os eventos</text>
+<rect x="472" y="122" width="156" height="70" rx="10" fill="#E0ECFF" stroke="#5B8DEF" stroke-width="1.5"/>
+<text x="550" y="144" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0B2E6B">Kafka</text>
+<text x="550" y="164" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">fila / buffer</text>
+<text x="550" y="180" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">de eventos</text>
+<rect x="693" y="114" width="156" height="86" rx="10" fill="#FFF4C2" stroke="#D9A400" stroke-width="2.5"/>
+<text x="771" y="136" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#4A3800">ClickHouse</text>
+<text x="771" y="156" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">tabela de eventos</text>
+<text x="771" y="172" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">(MergeTree)</text>
+<text x="771" y="188" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">+ materialized views</text>
+<rect x="914" y="76" width="156" height="70" rx="10" fill="#E3F5E8" stroke="#3FA866" stroke-width="1.5"/>
+<text x="992" y="98" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0E3B1F">Produto de analytics</text>
+<text x="992" y="118" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">funis, retenção,</text>
+<text x="992" y="134" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">segmentação</text>
+<rect x="914" y="168" width="156" height="70" rx="10" fill="#E3F5E8" stroke="#3FA866" stroke-width="1.5"/>
+<text x="992" y="190" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0E3B1F">Dashboards</text>
+<text x="992" y="210" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">times de produto</text>
+<text x="992" y="226" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">e marketing</text>
+<text x="30" y="272" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12.5" fill="#4B5563">Bilhões de eventos, consultas que filtram poucas colunas (evento, data, usuário) e agregam muitas linhas.</text>
+</svg>

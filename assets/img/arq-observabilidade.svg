@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 260" width="1100" height="260" role="img" aria-label="Observabilidade: logs, métricas e traces">
+<title>Observabilidade: logs, métricas e traces</title>
+<defs><marker id='a' viewBox='0 0 10 10' refX='9' refY='5' markerWidth='7' markerHeight='7' orient='auto-start-reverse'><path d='M0,0 L10,5 L0,10 z' fill='#4B5563'/></marker></defs>
+<rect x="1" y="1" width="1098" height="258" rx="14" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1.5"/>
+<text x="30" y="38" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#111827">Observabilidade: logs, métricas e traces</text>
+<path d="M186,103 C254,103 254,141 321,141" fill="none" stroke="#4B5563" stroke-width="1.8" marker-end="url(#a)"/>
+<rect x="234" y="103" width="38" height="18" rx="4" fill="#FFFFFF"/>
+<text x="254" y="116" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-style="italic" fill="#374151">OTLP</text>
+<path d="M186,179 C254,179 254,141 321,141" fill="none" stroke="#4B5563" stroke-width="1.8" marker-end="url(#a)"/>
+<path d="M481,141 C548,141 548,141 615,141" fill="none" stroke="#4B5563" stroke-width="1.8" marker-end="url(#a)"/>
+<rect x="515" y="122" width="66" height="18" rx="4" fill="#FFFFFF"/>
+<text x="548" y="135" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-style="italic" fill="#374151">exporter</text>
+<path d="M775,141 C842,141 842,103 910,103" fill="none" stroke="#4B5563" stroke-width="1.8" marker-end="url(#a)"/>
+<path d="M775,141 C842,141 842,179 910,179" fill="none" stroke="#4B5563" stroke-width="1.8" marker-end="url(#a)"/>
+<rect x="30" y="76" width="156" height="54" rx="10" fill="#F3F4F6" stroke="#9CA3AF" stroke-width="1.5"/>
+<text x="108" y="98" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111827">Aplicações</text>
+<text x="108" y="118" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">microsserviços</text>
+<rect x="30" y="152" width="156" height="54" rx="10" fill="#F3F4F6" stroke="#9CA3AF" stroke-width="1.5"/>
+<text x="108" y="174" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111827">Infraestrutura</text>
+<text x="108" y="194" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">Kubernetes, VMs</text>
+<rect x="325" y="106" width="156" height="70" rx="10" fill="#E0ECFF" stroke="#5B8DEF" stroke-width="1.5"/>
+<text x="403" y="128" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0B2E6B">OpenTelemetry</text>
+<text x="403" y="148" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">Collector</text>
+<text x="403" y="164" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">(ou Vector / Fluent Bit)</text>
+<rect x="619" y="98" width="156" height="86" rx="10" fill="#FFF4C2" stroke="#D9A400" stroke-width="2.5"/>
+<text x="697" y="120" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#4A3800">ClickHouse</text>
+<text x="697" y="140" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">logs, traces, métricas</text>
+<text x="697" y="156" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">TTL por tabela</text>
+<text x="697" y="172" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">tiering para S3</text>
+<rect x="914" y="76" width="156" height="54" rx="10" fill="#E3F5E8" stroke="#3FA866" stroke-width="1.5"/>
+<text x="992" y="98" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0E3B1F">Grafana / HyperDX</text>
+<text x="992" y="118" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">busca e dashboards</text>
+<rect x="914" y="152" width="156" height="54" rx="10" fill="#E3F5E8" stroke="#3FA866" stroke-width="1.5"/>
+<text x="992" y="174" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0E3B1F">Alertas</text>
+<text x="992" y="194" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">regras sobre SQL</text>
+<text x="30" y="240" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12.5" fill="#4B5563">Logs são largos e repetitivos: a compressão por coluna derruba o custo de armazenamento.</text>
+</svg>

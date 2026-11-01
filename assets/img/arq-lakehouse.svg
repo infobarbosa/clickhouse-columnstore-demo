@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 292" width="1100" height="292" role="img" aria-label="Camada de serving sobre o lakehouse (S3 + Iceberg)">
+<title>Camada de serving sobre o lakehouse (S3 + Iceberg)</title>
+<defs><marker id='a' viewBox='0 0 10 10' refX='9' refY='5' markerWidth='7' markerHeight='7' orient='auto-start-reverse'><path d='M0,0 L10,5 L0,10 z' fill='#4B5563'/></marker></defs>
+<rect x="1" y="1" width="1098" height="290" rx="14" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1.5"/>
+<text x="30" y="38" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#111827">Camada de serving sobre o lakehouse (S3 + Iceberg)</text>
+<path d="M186,157 C216,157 216,157 247,157" fill="none" stroke="#4B5563" stroke-width="1.8" marker-end="url(#a)"/>
+<path d="M407,157 C438,157 438,157 468,157" fill="none" stroke="#4B5563" stroke-width="1.8" marker-end="url(#a)"/>
+<path d="M628,157 C658,157 658,103 689,103" fill="none" stroke="#4B5563" stroke-width="1.8" marker-end="url(#a)"/>
+<path d="M628,157 C658,157 658,195 689,195" fill="none" stroke="#4B5563" stroke-width="1.8" marker-end="url(#a)"/>
+<rect x="622" y="157" width="73" height="18" rx="4" fill="#FFFFFF"/>
+<text x="658" y="170" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-style="italic" fill="#374151">icebergS3</text>
+<path d="M849,103 C880,103 880,119 910,119" fill="none" stroke="#4B5563" stroke-width="1.8" marker-end="url(#a)"/>
+<path d="M849,195 C880,195 880,119 910,119" fill="none" stroke="#4B5563" stroke-width="1.8" marker-end="url(#a)"/>
+<path d="M849,195 C880,195 880,203 910,203" fill="none" stroke="#4B5563" stroke-width="1.8" marker-end="url(#a)"/>
+<rect x="30" y="122" width="156" height="70" rx="10" fill="#F3F4F6" stroke="#9CA3AF" stroke-width="1.5"/>
+<text x="108" y="144" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#111827">Fontes</text>
+<text x="108" y="164" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">sistemas, arquivos,</text>
+<text x="108" y="180" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">eventos</text>
+<rect x="251" y="122" width="156" height="70" rx="10" fill="#E0ECFF" stroke="#5B8DEF" stroke-width="1.5"/>
+<text x="329" y="144" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0B2E6B">Glue / EMR</text>
+<text x="329" y="164" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">jobs Spark</text>
+<text x="329" y="180" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">(ETL / ELT)</text>
+<rect x="472" y="122" width="156" height="70" rx="10" fill="#EDE7FB" stroke="#8B6FD6" stroke-width="1.5"/>
+<text x="550" y="144" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#2E1C66">S3 + Iceberg</text>
+<text x="550" y="164" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">catálogo Glue</text>
+<text x="550" y="180" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">camada fria, barata</text>
+<rect x="693" y="76" width="156" height="54" rx="10" fill="#E0ECFF" stroke="#5B8DEF" stroke-width="1.5"/>
+<text x="771" y="98" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0B2E6B">Athena</text>
+<text x="771" y="118" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">consultas ad hoc</text>
+<rect x="693" y="152" width="156" height="86" rx="10" fill="#FFF4C2" stroke="#D9A400" stroke-width="2.5"/>
+<text x="771" y="174" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#4A3800">ClickHouse</text>
+<text x="771" y="194" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">lê Iceberg direto</text>
+<text x="771" y="210" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">ou copia para</text>
+<text x="771" y="226" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">MergeTree (quente)</text>
+<rect x="914" y="84" width="156" height="70" rx="10" fill="#E3F5E8" stroke="#3FA866" stroke-width="1.5"/>
+<text x="992" y="106" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0E3B1F">BI / dashboards</text>
+<text x="992" y="126" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">QuickSight, Superset,</text>
+<text x="992" y="142" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">Grafana</text>
+<rect x="914" y="176" width="156" height="54" rx="10" fill="#E3F5E8" stroke="#3FA866" stroke-width="1.5"/>
+<text x="992" y="198" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0E3B1F">APIs de dados</text>
+<text x="992" y="218" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">baixa latência</text>
+<text x="30" y="272" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12.5" fill="#4B5563">Os dados continuam no lake; o ClickHouse vira a camada rápida para o que é consultado com frequência.</text>
+</svg>

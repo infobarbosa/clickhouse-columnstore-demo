@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 216" width="1100" height="216" role="img" aria-label="Analytics em tempo real voltado ao cliente">
+<title>Analytics em tempo real voltado ao cliente</title>
+<defs><marker id='a' viewBox='0 0 10 10' refX='9' refY='5' markerWidth='7' markerHeight='7' orient='auto-start-reverse'><path d='M0,0 L10,5 L0,10 z' fill='#4B5563'/></marker></defs>
+<rect x="1" y="1" width="1098" height="214" rx="14" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1.5"/>
+<text x="30" y="38" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#111827">Analytics em tempo real voltado ao cliente</text>
+<path d="M186,119 C216,119 216,119 247,119" fill="none" stroke="#4B5563" stroke-width="1.8" marker-end="url(#a)"/>
+<rect x="201" y="100" width="31" height="18" rx="4" fill="#FFFFFF"/>
+<text x="216" y="113" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-style="italic" fill="#374151">WAL</text>
+<path d="M407,119 C438,119 438,119 468,119" fill="none" stroke="#4B5563" stroke-width="1.8" marker-end="url(#a)"/>
+<path d="M628,119 C658,119 658,119 689,119" fill="none" stroke="#4B5563" stroke-width="1.8" marker-end="url(#a)"/>
+<rect x="643" y="100" width="31" height="18" rx="4" fill="#FFFFFF"/>
+<text x="658" y="113" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" font-style="italic" fill="#374151">SQL</text>
+<path d="M849,119 C880,119 880,119 910,119" fill="none" stroke="#4B5563" stroke-width="1.8" marker-end="url(#a)"/>
+<rect x="30" y="84" width="156" height="70" rx="10" fill="#EDE7FB" stroke="#8B6FD6" stroke-width="1.5"/>
+<text x="108" y="106" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#2E1C66">Banco transacional</text>
+<text x="108" y="126" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">PostgreSQL / MySQL</text>
+<text x="108" y="142" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">(fonte da verdade)</text>
+<rect x="251" y="84" width="156" height="70" rx="10" fill="#E0ECFF" stroke="#5B8DEF" stroke-width="1.5"/>
+<text x="329" y="106" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0B2E6B">CDC</text>
+<text x="329" y="126" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">Debezium + Kafka</text>
+<text x="329" y="142" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">captura mudanças</text>
+<rect x="472" y="76" width="156" height="86" rx="10" fill="#FFF4C2" stroke="#D9A400" stroke-width="2.5"/>
+<text x="550" y="98" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#4A3800">ClickHouse</text>
+<text x="550" y="118" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">réplica analítica</text>
+<text x="550" y="134" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">ReplacingMergeTree</text>
+<text x="550" y="150" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">+ agregações</text>
+<rect x="693" y="84" width="156" height="70" rx="10" fill="#E3F5E8" stroke="#3FA866" stroke-width="1.5"/>
+<text x="771" y="106" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0E3B1F">API do produto</text>
+<text x="771" y="126" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">consulta por cliente</text>
+<text x="771" y="142" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">(tenant_id)</text>
+<rect x="914" y="84" width="156" height="70" rx="10" fill="#E3F5E8" stroke="#3FA866" stroke-width="1.5"/>
+<text x="992" y="106" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0E3B1F">Dashboard embutido</text>
+<text x="992" y="126" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">milhares de usuários</text>
+<text x="992" y="142" text-anchor="middle" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12" fill="#374151">simultâneos</text>
+<text x="30" y="196" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="12.5" fill="#4B5563">O OLTP continua cuidando das transações; o ClickHouse responde às consultas analíticas em milissegundos.</text>
+</svg>

@@ -883,13 +883,188 @@ dados_processados: 4.13 MiB
 >
 > Todas as consultas percorreram as 541 mil linhas, mas o volume lido do disco foi determinado pelas **colunas** envolvidas. Em um armazenamento por linha, ler uma coluna obriga a ler o registro inteiro.
 
+## 9. Casos de uso
+As seções anteriores mostraram três propriedades do armazenamento colunar: **cada coluna em um arquivo**, **compressão alta em colunas repetitivas** e **leitura apenas das colunas envolvidas**. Elas ajudam sempre que a carga de trabalho é do tipo *"muitas linhas, poucas colunas"*: agregar bilhões de registros filtrando e agrupando por um punhado de atributos.
+
+Os diagramas abaixo são arquiteturas de referência simplificadas. Os componentes ao redor do ClickHouse são exemplos comuns, não os únicos possíveis.
+
+### 9.a. Analytics de produto e eventos
+![Arquitetura de analytics de produto](assets/img/arq-analytics-produto.svg)
+
+Cliques, visualizações de página e eventos de aplicativo chegam em grande volume, são **imutáveis** (um evento não muda depois de acontecer) e são consultados por agregação: funis, retenção, contagem de usuários por dia.
+- **Por que colunar:** uma pergunta como *"quantos usuários fizeram checkout por dia?"* toca 3 ou 4 colunas de uma tabela que pode ter centenas. É o mesmo efeito da seção 8.
+- **Ingestão:** os eventos passam por uma fila (Kafka) e são gravados em lotes. Lotes grandes geram poucas *parts* (seção 5).
+- **Agregações prontas:** *materialized views* mantêm tabelas resumidas (por dia, por evento) atualizadas a cada `INSERT`.
+- **Na prática:** o [PostHog](https://posthog.com/docs/how-posthog-works), ferramenta open source de analytics de produto, usa essa arquitetura: os eventos chegam por uma API de coleta, passam pelo Kafka e são gravados no ClickHouse.
+
+### 9.b. Observabilidade: logs, métricas e traces
+![Arquitetura de observabilidade](assets/img/arq-observabilidade.svg)
+
+Logs são registros largos (dezenas de campos), com valores muito repetitivos (nome do serviço, nível, código de status) e consultados quase sempre por janela de tempo.
+- **Por que colunar:** colunas como `service` e `level` comprimem dezenas ou centenas de vezes, como a coluna `Country` da seção 7. Isso reduz o custo de armazenamento.
+- **Retenção:** `TTL` apaga ou move para o S3 os dados antigos automaticamente.
+- **Na prática:**
+  - O [Uber](https://www.uber.com/blog/logging/) (2021) migrou sua plataforma de logs do ELK (Elasticsearch) para o ClickHouse. Um nó do ClickHouse ingeriu cerca de 10 vezes mais logs por segundo que um nó do Elasticsearch, e o custo de hardware caiu para menos da metade.
+  - O [Trip.com](https://clickhouse.com/blog/how-trip.com-migrated-from-elasticsearch-and-built-a-50pb-logging-solution-with-clickhouse) (2024) também saiu do Elasticsearch. Relatou economia de mais de 50% em armazenamento e consultas de 4 a 30 vezes mais rápidas, em uma plataforma com dezenas de petabytes.
+  - O [ClickStack](https://clickhouse.com/blog/clickstack-a-high-performance-oss-observability-stack-on-clickhouse) (2025) empacota essa arquitetura em uma stack open source: OpenTelemetry Collector + ClickHouse + a interface HyperDX.
+
+### 9.c. Analytics em tempo real voltado ao cliente
+![Arquitetura de analytics voltado ao cliente](assets/img/arq-analytics-cliente.svg)
+
+Dashboards embutidos em um produto SaaS ("seus gastos do mês", "suas vendas por região") são vistos por milhares de clientes ao mesmo tempo e precisam responder em milissegundos.
+- **Separação de papéis:** o banco transacional continua sendo a fonte da verdade. As mudanças são capturadas por **CDC** (*Change Data Capture*) e replicadas para o ClickHouse, que atende só as consultas analíticas.
+- **Atualizações:** como as parts são imutáveis (seção 5), o CDC costuma gravar cada mudança como uma nova linha. O motor `ReplacingMergeTree` mantém apenas a versão mais recente de cada chave durante os *merges*.
+- **Na prática:** a [Cloudflare](https://blog.cloudflare.com/http-analytics-for-6m-requests-per-second-using-clickhouse/) (2018) passou a servir os painéis de analytics dos seus clientes a partir do ClickHouse, processando em média cerca de 6 milhões de requisições HTTP por segundo. A nova arquitetura substituiu um pipeline de agregação baseado em PostgreSQL e Citus.
+
+### 9.d. Camada de serving sobre o lakehouse (S3 + Iceberg)
+![Arquitetura de lakehouse com ClickHouse](assets/img/arq-lakehouse.svg)
+
+Em um lakehouse na AWS, os dados ficam no S3 em formato aberto (Parquet + Iceberg), processados por Glue/EMR e consultados pelo Athena. O ClickHouse pode entrar como a camada **rápida** para os dados mais consultados.
+- **Leitura direta:** o ClickHouse [lê tabelas Iceberg](https://clickhouse.com/docs/use-cases/data-lake/getting-started) no S3 sem copiar os dados, pela função `icebergS3()`, pelo motor `IcebergS3` ou conectando-se ao catálogo (inclusive o AWS Glue) com o motor de database `DataLakeCatalog`.
+- **Camada quente:** para dashboards de baixa latência, os dados mais acessados são copiados com `INSERT ... SELECT` para tabelas `MergeTree` locais, com índice primário e compressão próprios.
+- **Mesma ideia, dois níveis:** o Parquet também é colunar. Por isso o Athena se beneficia do mesmo princípio da seção 8 ao ler apenas as colunas da consulta.
+
+### 9.e. IoT e séries temporais
+![Arquitetura de IoT e séries temporais](assets/img/arq-iot-series-temporais.svg)
+
+Sensores enviam leituras periódicas (temperatura, posição, consumo) que são sempre consultadas por sensor e intervalo de tempo.
+- **Ordenação:** com `ORDER BY (sensor_id, ts)`, as leituras de um mesmo sensor ficam **lado a lado** no arquivo da coluna, como os nomes da seção 4.
+- **Codecs especializados:** valores vizinhos mudam pouco. Codecs como `Delta`, `DoubleDelta` e `Gorilla` gravam apenas a diferença entre um valor e o anterior antes do LZ4, e comprimem muito mais que o padrão.
+- **Retenção:** `TTL` remove o dado bruto antigo e *materialized views* mantêm versões agregadas (por minuto, por hora) por mais tempo.
+
+## 10. Quando *não* usar um banco colunar
+As mesmas propriedades que favorecem a análise atrapalham outras cargas de trabalho. Nestes casos, um banco por linha, como o MySQL do laboratório [mysql-rowstore-demo](https://github.com/infobarbosa/mysql-rowstore-demo), é a escolha natural:
+
+| Cenário | Por que o colunar sofre | Onde vimos isso no lab |
+|---|---|---|
+| **Transações (OLTP)**: pedidos, saldos, reservas | Cada registro está espalhado em um arquivo por coluna. Gravar ou ler **uma linha inteira** obriga a tocar todos esses arquivos. | Seção 3: um arquivo por coluna |
+| **Atualizações e exclusões frequentes de linhas** | As parts são imutáveis. Alterar dados significa reescrever trechos de parts ou gravar novas versões e limpar depois. O ClickHouse oferece [`UPDATE` e `DELETE`](https://clickhouse.com/docs/updating-data/overview), mas eles não foram feitos para uso constante, linha a linha. | Seção 5: parts imutáveis |
+| **Muitos `INSERT`s pequenos** | Cada `INSERT` cria uma part. Milhares de inserções de uma linha geram milhares de diretórios, e os *merges* não dão conta. A saída é agrupar em lotes ou usar `async_insert`. | Seção 5.a: uma part por `INSERT` |
+| **Buscar um registro pela chave e ler todas as colunas** | O índice primário é esparso (aponta para blocos de 8.192 linhas). Para devolver uma linha, o banco lê um bloco de **cada** coluna. | Seção 8: a busca de uma nota fiscal leu cerca de 447 KiB para devolver poucas linhas |
+
+> Na prática, os dois modelos convivem: o banco por linha atende o sistema transacional e o colunar recebe uma cópia dos dados para análise (seção 9.c).
+
+## 11. Benchmarks públicos
+Benchmarks públicos ajudam a comparar bancos analíticos em condições padronizadas, mas cada um mede uma coisa diferente.
+
+### 11.a. ClickBench
+O [ClickBench](https://benchmark.clickhouse.com/) ([código no GitHub](https://github.com/ClickHouse/ClickBench)) é mantido pela própria ClickHouse Inc. e compara dezenas de sistemas: bancos colunares, motores de consulta sobre Parquet, bancos por linha e serviços gerenciados.
+- **Dados:** uma única tabela plana (`hits`) com cerca de 100 milhões de registros reais e anonimizados de tráfego web.
+- **Consultas:** 43 consultas típicas de clickstream, logs e analytics de eventos.
+- **O que é medido:** tempo de carga, tamanho em disco, execução "fria" (primeira vez, sem cache) e "quente" (repetições).
+- **Regras:** proíbe cache de resultados, tabelas pré-agregadas e índices extras além da chave primária. Configurações ajustadas (*tuned*) são publicadas separadamente das padrão.
+- **Limitações reconhecidas pelos autores:** uma tabela plana não favorece *data warehouses* modelados em estrela, o volume de dados é pequeno para os padrões atuais e a maior parte dos resultados é de máquina única.
+
+### 11.b. Star Schema Benchmark (SSB)
+O [SSB](https://clickhouse.com/docs/getting-started/example-datasets/star-schema) é derivado do TPC-H e modela um *data warehouse* em estrela: uma tabela fato (`lineorder`) e quatro dimensões. Tem 13 consultas e um gerador de dados com fator de escala. A documentação do ClickHouse mostra como carregá-lo e também como criar uma versão desnormalizada (`lineorder_flat`), útil para comparar *joins* com uma tabela única.
+
+### 11.c. TPC-H e TPC-DS
+São os benchmarks de referência do [TPC](https://www.tpc.org/) para sistemas de apoio à decisão: o [TPC-H](https://clickhouse.com/docs/getting-started/example-datasets/tpch) tem 8 tabelas e 22 consultas, e o TPC-DS é bem mais amplo e complexo. Resultados **oficiais** precisam ser auditados pelo TPC. A maioria dos números que circulam em blogs são execuções *"derivadas do TPC-H"* e não podem ser comparados com os oficiais.
+
+### 11.d. Como ler um benchmark
+- **Quem publicou?** O ClickBench é mantido pela ClickHouse Inc. e outros fornecedores publicam os seus. Verifique a metodologia antes do ranking.
+- **Que hardware?** Comparar uma máquina de 16 núcleos com um cluster de 100 nós não diz nada sobre o banco.
+- **Padrão ou ajustado?** Configurações ajustadas podem mudar a ordem do ranking.
+- **A carga se parece com a sua?** Uma tabela plana de eventos (ClickBench) e um modelo em estrela com muitos *joins* (TPC-DS) favorecem sistemas diferentes.
+- **Concorrência:** a maioria dos benchmarks executa uma consulta por vez. Dashboards com centenas de usuários simultâneos são outro problema.
+
+### 11.e. Exercício opcional: um pedaço do ClickBench
+O dataset do ClickBench também é publicado dividido em 100 arquivos Parquet. Um deles cabe com folga na instância do laboratório.
+
+> Este exercício baixa cerca de 150 MB da internet e não tem output fixo: os números dependem do arquivo e da versão do ClickHouse. Compare as **proporções** com o que você viu nas seções 7 e 8.
+
+Crie a tabela a partir do Parquet. O ClickHouse lê o arquivo direto da URL e infere o esquema:
+```sh
+# 11.e.1
+clickhouse-client -q "CREATE DATABASE IF NOT EXISTS clickbench;"
+clickhouse-client -q "
+CREATE TABLE clickbench.hits
+ENGINE = MergeTree
+ORDER BY tuple()
+AS SELECT *
+FROM url('https://datasets.clickhouse.com/hits_compatible/athena_partitioned/hits_0.parquet');"
+
+```
+
+Quantas linhas e quantas colunas:
+```sh
+# 11.e.2
+clickhouse-client -q "SELECT count() FROM clickbench.hits;"
+clickhouse-client -q "SELECT count() FROM system.columns WHERE database = 'clickbench' AND table = 'hits';"
+
+```
+
+Execute três consultas do ClickBench:
+```sh
+# 11.e.3
+clickhouse-client -q "SELECT COUNT(*) FROM clickbench.hits WHERE AdvEngineID <> 0;"
+
+clickhouse-client -q "
+SELECT AdvEngineID, COUNT(*) AS c
+FROM clickbench.hits
+WHERE AdvEngineID <> 0
+GROUP BY AdvEngineID
+ORDER BY c DESC;" --format PrettyCompactMonoBlock
+
+clickhouse-client -q "
+SELECT SearchPhrase, COUNT(*) AS c
+FROM clickbench.hits
+WHERE SearchPhrase <> ''
+GROUP BY SearchPhrase
+ORDER BY c DESC
+LIMIT 10;" --format PrettyCompactMonoBlock
+
+```
+
+Quanto cada consulta leu do disco, comparado ao tamanho total da tabela:
+```sh
+# 11.e.4
+clickhouse-client -q "SYSTEM FLUSH LOGS;"
+clickhouse-client -q "
+SELECT
+    query AS consulta,
+    formatReadableSize(ProfileEvents['ReadCompressedBytes']) AS lido_do_disco
+FROM system.query_log
+WHERE type = 'QueryFinish'
+  AND query_kind = 'Select'
+  AND has(tables, 'clickbench.hits')
+ORDER BY event_time_microseconds DESC
+LIMIT 3;" --format Vertical
+
+clickhouse-client -q "
+SELECT formatReadableSize(sum(data_compressed_bytes)) AS tamanho_em_disco
+FROM system.parts
+WHERE database = 'clickbench' AND table = 'hits' AND active;"
+
+```
+
+> A tabela tem mais de cem colunas, mas cada consulta abriu apenas uma ou duas. Por isso o volume lido é uma fração pequena do tamanho total.
+
+Para ver o efeito da compressão, liste as colunas que mais e menos comprimem:
+```sh
+# 11.e.5
+clickhouse-client -q "
+SELECT
+    column AS coluna,
+    formatReadableSize(sum(column_data_uncompressed_bytes)) AS tamanho_bruto,
+    formatReadableSize(sum(column_data_compressed_bytes))   AS tamanho_em_disco,
+    round(sum(column_data_uncompressed_bytes) / sum(column_data_compressed_bytes), 1) AS taxa_compressao
+FROM system.parts_columns
+WHERE database = 'clickbench' AND table = 'hits' AND active
+GROUP BY column
+ORDER BY taxa_compressao DESC
+LIMIT 10;" --format PrettyCompactMonoBlock
+
+```
+
 ## Parabéns!
 Neste laboratório nós:
 1. Criamos uma tabela colunar no ClickHouse e localizamos seus arquivos de dados em disco;
 2. Comprovamos que **cada coluna é gravada em um arquivo próprio**, com seus valores lado a lado;
 3. Vimos que os arquivos de dados são **imutáveis**: cada `INSERT` gera uma nova part, e parts são fundidas por *merges*;
 4. Medimos a **compressão** coluna a coluna;
-5. Verificamos que uma consulta lê do disco **apenas as colunas de que precisa**.
+5. Verificamos que uma consulta lê do disco **apenas as colunas de que precisa**;
+6. Relacionamos essas propriedades a **casos de uso reais**, aos cenários em que o modelo colunar **não** é indicado e aos **benchmarks públicos** de bancos analíticos.
 
 ## Referências
 
@@ -907,6 +1082,15 @@ Neste laboratório nós:
 
 5. **Designing Data-Intensive Applications** — Martin Kleppmann
    Capítulo 3: "Storage and Retrieval" — cobre modelos de armazenamento em linha vs. coluna.
+
+6. **ClickBench** — metodologia, regras e resultados
+   https://github.com/ClickHouse/ClickBench
+
+7. **ClickHouse - Updating data** (mutations, `DELETE`/`UPDATE` leves, `ReplacingMergeTree`)
+   https://clickhouse.com/docs/updating-data/overview
+
+8. **ClickHouse - Data lake** (Iceberg, Delta Lake e catálogos)
+   https://clickhouse.com/docs/use-cases/data-lake/getting-started
 
 ## Apêndice: Execução Local
 
